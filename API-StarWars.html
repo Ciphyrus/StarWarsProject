@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="ISO-8859-1">
+		<title>API Star Wars</title>
+		
+		<style>
+			.form{width: 50%; margin-left: 25%; margin-top: 10%;}
+			.form-group{width: 25%; float: left;}
+			.center-btn{margin-left: 25%;}
+			
+			input{width: 95%;}
+			button{
+				width: 50%;
+			}
+			table{
+				font-family: arial, sans-serif;
+  				border-collapse: collapse;
+				width: 80%;
+				margin-left: 10%;
+				margin-top: 10%;
+			}
+			td, th {
+				border: 1px solid #dddddd;
+				text-align: left;
+				padding: 8px;
+				width: 16.66%;
+			}
+		</style>
+	</head>
+	<body>
+		<table class="js-lista" id="js-lista">
+			<thead id="thead">
+				<tr class="js-carregando" id="js-carregando">
+					<td colspan="6">
+						<h1><b>Carregando...</b></h1>
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				
+			</tbody>
+		</table>
+		
+		<div id="js-editar">
+			<div class="form">
+				<input type="hidden" id="id">
+				<div class="form-group">
+					<label>Título:<br><input type="text" id="titulo"></label>
+				</div>
+				<div class="form-group">
+					<label>Diretor:<br><input type="text" id="diretor"></label>
+				</div>
+				<div class="form-group">
+					<label>Produtor(es):<br><input type="text" id="produtor"></label>
+				</div>
+				<div class="form-group">
+					<label>Data:<br><input type="text" id="data"></label>
+				</div>
+				<button onClick="concluirAlteracao()" class="center-btn">Alterar</button>
+			</div>
+		</div>
+	</body>
+	
+	<script type="text/javascript">
+		document.getElementById('js-editar').style.display = "none";
+		
+		async function pegarFilmesApi() {
+			const response = await fetch('https://swapi.dev/api/films/?page=1');
+
+		    return await response.json();
+		}
+		
+		pegarFilmesApi().then(response => {
+			console.log(response);
+			var filmes = response;
+			var arrayFilmes = filmes.results;
+			console.log(arrayFilmes);
+			
+			adicionarThead();
+			
+			for (var i = 0; i < arrayFilmes.length; i++){
+				console.log(arrayFilmes[i].episode_id);
+				adicionaLinha(arrayFilmes[i]);
+			};
+			document.getElementById('js-carregando').remove();
+		}).catch(error => {
+			console.log(error);
+			document.getElementById('js-carregando').innerText = "Erro!";
+		});
+		
+		function adicionaLinha(filmes) {
+			var tabela = document.getElementById("js-lista");
+            var numeroLinhas = tabela.rows.length;
+            var linha = tabela.insertRow(numeroLinhas);
+            
+            var celulaID = 		 linha.insertCell(0);
+            var celulaTitulo = 	 linha.insertCell(1);   
+            var celulaDiretor =  linha.insertCell(2);
+            var celulaProdutor = linha.insertCell(3); 
+            var celulaData =  	 linha.insertCell(4); 
+            var celulaRemover =  linha.insertCell(5);
+            
+            celulaID.innerHTML = filmes.episode_id;
+            celulaTitulo.innerHTML = filmes.title;
+            celulaDiretor.innerHTML = filmes.director;
+            celulaProdutor.innerHTML = filmes.producer;
+            var splited = filmes.release_date.split('-');
+            celulaData.innerHTML = splited[2] + "/" + splited[1] + "/" +splited[0];
+            celulaRemover.innerHTML = "<button onclick='removeLinha(this)'>Remover</button><button onclick='alterarLinha(this)'>Alterar</button>";
+        }
+		
+		function adicionarThead() {
+			var thead = document.getElementById("thead");
+            console.log(thead);
+            var linha = thead.insertRow(0);
+            
+            var celulaID = 		 linha.insertCell(0);
+            var celulaTitulo = 	 linha.insertCell(1);   
+            var celulaDiretor =  linha.insertCell(2);
+            var celulaProdutor = linha.insertCell(3); 
+            var celulaData =  	 linha.insertCell(4); 
+            var celulaRemover =  linha.insertCell(5);
+            
+            celulaID.innerHTML = "ID".fontsize(5).bold();
+            celulaTitulo.innerHTML = "Título".fontsize(5).bold();
+            celulaDiretor.innerHTML = "Diretor".fontsize(5).bold();
+            celulaProdutor.innerHTML = "Produtor(es)".fontsize(5).bold();
+            celulaData.innerHTML = "Data de estréia".fontsize(5).bold();
+            celulaRemover.innerHTML = "";
+        }
+		
+		function removeLinha(linha) {
+	        var i = linha.parentNode.parentNode.rowIndex;
+	        document.getElementById('js-lista').deleteRow(i);
+        }
+		
+		function alterarLinha(linha) {			
+	        var i = linha.parentNode.parentNode.rowIndex;
+	        // document.getElementById('js-lista').deleteRow(i);
+	        document.getElementById('js-editar').style.display = "block";
+	        document.getElementById('js-lista').style.display = "none";
+	        
+	        document.getElementById('id').value = linha.parentNode.parentNode.childNodes[0].innerText;
+	        document.getElementById('titulo').value = linha.parentNode.parentNode.childNodes[1].innerText;
+	        document.getElementById('diretor').value = linha.parentNode.parentNode.childNodes[2].innerText;
+	        document.getElementById('produtor').value = linha.parentNode.parentNode.childNodes[3].innerText;
+	        document.getElementById('data').value = linha.parentNode.parentNode.childNodes[4].innerText;
+	        
+	        console.log(document.getElementById('id').value);
+        }
+		
+		function concluirAlteracao(){
+			var idOndeAlterar = document.getElementById('id').value;
+			var linhas = document.getElementById('js-lista').getElementsByTagName("tr");
+			document.getElementById('js-lista').style.display = "block";
+			
+			for (var i = 0; i < linhas.length; i++){
+				if (linhas[i].childNodes[0].innerText == idOndeAlterar){
+					linhas[i].childNodes[1].innerText = document.getElementById('titulo').value;
+					linhas[i].childNodes[2].innerText = document.getElementById('diretor').value;
+					linhas[i].childNodes[3].innerText = document.getElementById('produtor').value;
+					linhas[i].childNodes[4].innerText = document.getElementById('data').value;
+				}
+			}
+			
+			document.getElementById('js-editar').style.display = "none";
+	        
+		}
+	</script>
+</html>
